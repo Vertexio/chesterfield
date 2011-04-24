@@ -45,10 +45,10 @@ test( 'Basic Tests', function (t) {
 	bplus_tree.insert( 'foo', 'baz', on_inserted_first_dupe );
 
 	var on_inserted_second_key = on_inserted_generator( t, false, 'Insert second key < first' );
-	//bplus_tree.insert( 'faz', 'bar', on_inserted_second_key );
+	bplus_tree.insert( 'faz', 'bar', on_inserted_second_key );
 	
 	var on_inserted_second_dupe = on_inserted_generator( t, true, 'Second duplicate key' );
-	bplus_tree.insert( 'foo', 'baz', on_inserted_first_dupe );
+	bplus_tree.insert( 'foo', 'baz', on_inserted_second_dupe );
 	
     }
     
