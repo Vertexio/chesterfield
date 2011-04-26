@@ -45,32 +45,6 @@ var setup = function setup() {
 
 };
 
-/*
-test( 'Basic Insert Tests', function (t) {
-
-	setup();
-
-	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
-	t.ok( bplus_tree, 'Successfully constructed BPlusTree object' );
-
-	var on_inserted_first_insert = on_inserted_generator( t, false, 'First insert' );
-	bplus_tree.insert( 'foo', 'bar', on_inserted_first_insert );
-
-	var on_inserted_first_dupe = on_inserted_generator( t, true, 'Insert first duplicate key' );
-	bplus_tree.insert( 'foo', 'baz', on_inserted_first_dupe );
-
-	var on_inserted_second_key = on_inserted_generator( t, false, 'Insert second key < first' );
-	bplus_tree.insert( 'faz', 'bar', on_inserted_second_key );
-	
-	var on_inserted_second_dupe = on_inserted_generator( t, true, 'Second duplicate key' );
-	
-	bplus_tree.insert( 'foo', 'baz', on_inserted_second_dupe );
-
-    }
-    
-);
-
-*/
 
 test( 'Insert 100 keys', function ( t ) {
 	
@@ -85,7 +59,12 @@ test( 'Insert 100 keys', function ( t ) {
 	var total_successful = 0, total_failed = 0;
 	var on_inserted = function on_inserted( err, sequence_number ) {
 	    
-	    err ? total_failed++ : total_successful++;
+	    if ( err ) {
+		total_failed++
+	    } 
+	    else { 
+		total_successful++;
+	    };
 
 	    if ( total_successful + total_failed == 100 ) {
 		
@@ -97,7 +76,12 @@ test( 'Insert 100 keys', function ( t ) {
 
 		var on_nested_inserted = function on_nested_inserted( err, sequence_number ) {
 
-		    err ? total_nested_failed++ : total_nested_successful++;
+		    if ( err )  { 
+			total_nested_failed++;
+		    }
+		    else {
+			total_nested_successful++;
+		    }
 		    
 		    if ( total_nested_successful + total_nested_failed == 100 ) {
 			t.ok( total_nested_failed == 100, 'Could not insert all 100 dupes' );

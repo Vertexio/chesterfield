@@ -45,32 +45,6 @@ var setup = function setup() {
 
 };
 
-/*
-test( 'Basic Insert Tests', function (t) {
-
-	setup();
-
-	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
-	t.ok( bplus_tree, 'Successfully constructed BPlusTree object' );
-
-	var on_inserted_first_insert = on_inserted_generator( t, false, 'First insert' );
-	bplus_tree.insert( 'foo', 'bar', on_inserted_first_insert );
-
-	var on_inserted_first_dupe = on_inserted_generator( t, true, 'Insert first duplicate key' );
-	bplus_tree.insert( 'foo', 'baz', on_inserted_first_dupe );
-
-	var on_inserted_second_key = on_inserted_generator( t, false, 'Insert second key < first' );
-	bplus_tree.insert( 'faz', 'bar', on_inserted_second_key );
-	
-	var on_inserted_second_dupe = on_inserted_generator( t, true, 'Second duplicate key' );
-	
-	bplus_tree.insert( 'foo', 'baz', on_inserted_second_dupe );
-
-    }
-    
-);
-
-*/
 
 test( 'Insert 100 keys', function ( t ) {
 	
@@ -82,30 +56,40 @@ test( 'Insert 100 keys', function ( t ) {
 	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
 	t.ok( bplus_tree, 'Successfully constructed BPlusTree object' );
 	
-	var total_successful = 0, total_failed = 0;
+	var total_insert_successful = 0, total_insert_failed = 0;
 	var on_inserted = function on_inserted( err, sequence_number ) {
 	    
-	    err ? total_failed++ : total_successful++;
+	    if ( err ) {
+		total_insert_failed++
+	    } 
+	    else { 
+		total_insert_successful++;
+	    };
 
-	    if ( total_successful + total_failed == 100 ) {
+	    if ( total_insert_successful + total_insert_failed == 1000 ) {
 		
-		t.ok( total_successful == 100, 'Inserted 100 keys successfully' );
+		t.ok( total_insert_successful == 1000, 'Inserted 1000 keys successfully' );
 		
 		//nested test, bleh, but necessary for now
 		//check that dupes can't be inserted
-		var total_nested_successful = 0, total_nested_failed = 0;		
+		var total_retrieve_failed = 0, total_retrieve_successful = 0;		
 
-		var on_nested_inserted = function on_nested_inserted( err, sequence_number ) {
+		var on_value_retrieved = function on_value_retrieved( err, value ) {
 
-		    err ? total_nested_failed++ : total_nested_successful++;
-		    
-		    if ( total_nested_successful + total_nested_failed == 100 ) {
-			t.ok( total_nested_failed == 100, 'Could not insert all 100 dupes' );
+		    if ( err )  { 
+			total_retrieve_failed++;
+		    }
+		    else {
+			total_retrieve_successful++;
 		    }
 		    
-		}; //on_nested_inserted
+		    if ( total_retrieve_successful + total_retrieve_failed == 1000 ) {
+			t.ok( total_retrieve_successful == 1000, 'Could retrieve all 1000 keys' );
+		    }
+		    
+		}; //on_value_retrieved
 		
-		for ( var i = 0; i < 100; i++ ) {
+		for ( var i = 0; i < 1000; i++ ) {
 		    var key;
 		    if ( i % 2 == 0 ) {
 			key = faz + i;
@@ -114,7 +98,7 @@ test( 'Insert 100 keys', function ( t ) {
 			key = foo + i;
 		    }
 	
-		    bplus_tree.insert( key, key, on_nested_inserted );
+		    bplus_tree.retrieve( key, on_value_retrieved );
 		    
 		}
 		
@@ -123,7 +107,7 @@ test( 'Insert 100 keys', function ( t ) {
 
 	};
 	
-	for ( var i = 0; i < 100; i++ ) {
+	for ( var i = 0; i < 1000; i++ ) {
 	    var key;
 	    if ( i % 2 == 0 ) {
 		key = faz + i;
