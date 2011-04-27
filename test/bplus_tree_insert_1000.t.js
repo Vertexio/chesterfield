@@ -46,7 +46,9 @@ var setup = function setup() {
 };
 
 
-test( 'Insert 100 keys', function ( t ) {
+var number = 1000;
+
+test( 'Insert ' + number + ' keys', function ( t ) {
 	
 	setup();
 
@@ -56,40 +58,77 @@ test( 'Insert 100 keys', function ( t ) {
 	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
 	t.ok( bplus_tree, 'Successfully constructed BPlusTree object' );
 	
-	var total_insert_successful = 0, total_insert_failed = 0;
+	var total_successful = 0, total_failed = 0;
 	var on_inserted = function on_inserted( err, sequence_number ) {
 	    
 	    if ( err ) {
-		total_insert_failed++
-	    } 
-	    else { 
-		total_insert_successful++;
-	    };
+		total_failed++;
+	    }
+	    else {
+		total_successful++;
+	    }
 
-	    if ( total_insert_successful + total_insert_failed == 1000 ) {
+	    if ( total_successful + total_failed == number) {
 		
-		t.ok( total_insert_successful == 1000, 'Inserted 1000 keys successfully' );
-		
+		t.ok( total_successful == number, 'Inserted ' + number + ' keys successfully' );
+	
 		//nested test, bleh, but necessary for now
 		//check that dupes can't be inserted
-		var total_retrieve_failed = 0, total_retrieve_successful = 0;		
+		var total_retrieved_successful = 0, total_retrieved_failed = 0;		
 
 		var on_value_retrieved = function on_value_retrieved( err, value ) {
 
 		    if ( err )  { 
-			total_retrieve_failed++;
+			total_retrieved_failed++ 
 		    }
 		    else {
-			total_retrieve_successful++;
+			total_retrieved_successful++;
 		    }
 		    
-		    if ( total_retrieve_successful + total_retrieve_failed == 1000 ) {
-			t.ok( total_retrieve_successful == 1000, 'Could retrieve all 1000 keys' );
+		    if ( total_retrieved_successful + total_retrieved_failed == number ) {
+			t.ok( total_retrieved_successful == number, 'Retrieved ' + number + ' successfully' );
+			
+			if ( total_retrieved_successful == number ) {
+
+			    //one more nested test
+			    var total_dupe_insert_failed = 0, total_dupe_insert_successful = 0;
+			    var on_dupe_inserted = function on_dupe_inserted( err, sequence_number ) {
+
+				if ( err )  { 
+				    total_dupe_insert_failed++ 
+				}
+				else {
+				    total_dupe_insert_successful++;
+				}
+				
+				if ( total_dupe_insert_successful + total_dupe_insert_failed == number ) {
+				    t.ok( total_dupe_insert_failed == number, number + ' dupe inserts should have not successed' );
+
+				}
+
+			    };
+			    
+			    for ( var i = 0; i < number; i++ ) {
+				var key;
+				if ( i % 2 == 0 ) {
+				    key = faz + i;
+				}
+				else {
+				    key = foo + i;
+				}
+
+				bplus_tree.insert( key, key, on_dupe_inserted );
+			    }
+
+			}
+
+			
+
 		    }
 		    
 		}; //on_value_retrieved
 		
-		for ( var i = 0; i < 1000; i++ ) {
+		for ( var i = 0; i < number; i++ ) {
 		    var key;
 		    if ( i % 2 == 0 ) {
 			key = faz + i;
@@ -102,12 +141,11 @@ test( 'Insert 100 keys', function ( t ) {
 		    
 		}
 		
-
 	    }
 
 	};
 	
-	for ( var i = 0; i < 1000; i++ ) {
+	for ( var i = 0; i < number; i++ ) {
 	    var key;
 	    if ( i % 2 == 0 ) {
 		key = faz + i;

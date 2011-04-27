@@ -46,7 +46,7 @@ var setup = function setup() {
 };
 
 
-var number = 100;
+var number = 10000;
 
 test( 'Insert ' + number + ' keys', function ( t ) {
 	
