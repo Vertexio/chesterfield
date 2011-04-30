@@ -3,10 +3,6 @@ var BPlusTree = require('../lib/bplus_tree').BPlusTree;
 var path = require('path');
 var fs = require('fs');
 
-
-//eventually we'll uncomment this once node-tap becomes more mature
-//var test = require("tap").test
-
 var test = require('./fake-node-tap').test;
 
 var on_inserted_generator = function on_inserted_generator( t, should_be_err, test_string, setup ) {
@@ -28,36 +24,50 @@ var setup = function setup() {
 
 };
 
-
 var number = 100;
 
-test( 'Insert ' + number + ' keys with small values', function ( t ) {
+test( 'Insert keys with medium sized value', function( t ) {
 	
 	setup();
 
 	var foo = 'foo';
 	var faz = 'faz';
 
-	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
-	t.ok( bplus_tree, 'Successfully constructed BPlusTree object' );
+
+	function generate_value( key ) {
+	    var base_data = [ 1, 2, 3, 4, 5, 6, 7, 8, 'nine', 'ten' ];
+	    var base_data_nested =  [base_data, base_data, base_data, base_data, base_data, 
+				 base_data, base_data, base_data, base_data, base_data];
+
+	    //~3140 characters when serialized
+	    var base_value = { data:  [ base_data_nested, base_data_nested, base_data_nested, base_data_nested, 
+					base_data_nested, base_data_nested, base_data_nested, base_data_nested, 
+					base_data_nested, base_data_nested ] };	    
+	    
+	    base_value._id = key;
+	    return base_value;
+
+	}
+
 	
-	var total_successful = 0, total_failed = 0;
+	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
+
+	var total_insert_successful = 0, total_insert_failed = 0;
 	var on_inserted = function on_inserted( err, sequence_number ) {
 	    
 	    if ( err ) {
-		total_failed++;
+		total_insert_failed++;
 	    }
 	    else {
-		total_successful++;
+		total_insert_successful++;
 	    }
 
-	    if ( total_successful + total_failed == number) {
-		
-		t.ok( total_successful == number, 'Inserted ' + number + ' keys successfully' );
-	
-		//nested test, bleh, but necessary for now
-		var total_retrieved_successful = 0, total_retrieved_failed = 0;		
 
+	    if ( total_insert_successful + total_insert_failed == number ) {
+
+		t.ok( total_insert_successful == number, 'Inserted ' + number + ' successfully' );
+
+		var total_retrieved_successful = 0, total_retrieved_failed = 0;	       
 		var on_value_retrieved = function on_value_retrieved( err, value ) {
 
 		    if ( err )  { 
@@ -69,47 +79,10 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 		    
 		    if ( total_retrieved_successful + total_retrieved_failed == number ) {
 			t.ok( total_retrieved_successful == number, 'Retrieved ' + number + ' successfully' );
-			
-			if ( total_retrieved_successful == number ) {
-
-			    //one more nested test
-			    var total_dupe_insert_failed = 0, total_dupe_insert_successful = 0;
-			    var on_dupe_inserted = function on_dupe_inserted( err, sequence_number ) {
-
-				if ( err )  { 
-				    total_dupe_insert_failed++ 
-				}
-				else {
-				    total_dupe_insert_successful++;
-				}
-				
-				if ( total_dupe_insert_successful + total_dupe_insert_failed == number ) {
-				    t.ok( total_dupe_insert_failed == number, number + ' dupe inserts should not have succeeded' );
-
-				}
-
-			    };
-			    
-			    for ( var i = 0; i < number; i++ ) {
-				var key;
-				if ( i % 2 == 0 ) {
-				    key = faz + i;
-				}
-				else {
-				    key = foo + i;
-				}
-
-				bplus_tree.insert( key, key, on_dupe_inserted );
-			    }
-
-			}
-
-			
-
 		    }
-		    
+	       
 		}; //on_value_retrieved
-		
+
 		for ( var i = 0; i < number; i++ ) {
 		    var key;
 		    if ( i % 2 == 0 ) {
@@ -126,7 +99,7 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 	    }
 
 	};
-	
+
 	for ( var i = 0; i < number; i++ ) {
 	    var key;
 	    if ( i % 2 == 0 ) {
@@ -135,9 +108,9 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 	    else {
 		key = foo + i;
 	    }
-	
-	    bplus_tree.insert( key, key, on_inserted );
-	
+
+	    var value = generate_value( key );
+	    bplus_tree.insert( key, value, on_inserted );
 	}
-	
-    });
+
+    } );
