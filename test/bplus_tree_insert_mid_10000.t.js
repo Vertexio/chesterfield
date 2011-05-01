@@ -24,7 +24,7 @@ var setup = function setup() {
 
 };
 
-var number = 1000;
+var number = 10000;
 
 test( 'Insert keys with medium sized value', function( t ) {
 	
