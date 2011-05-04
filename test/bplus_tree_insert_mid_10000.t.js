@@ -52,6 +52,7 @@ test( 'Insert keys with medium sized value', function( t ) {
 	
 	var bplus_tree = new BPlusTree( 'data/bplustree.data', 4096 );
 
+        var start;  
 	var total_insert_successful = 0, total_insert_failed = 0;
 	var on_inserted = function on_inserted( err, sequence_number ) {
 	    
@@ -64,8 +65,10 @@ test( 'Insert keys with medium sized value', function( t ) {
 
 
 	    if ( total_insert_successful + total_insert_failed == number ) {
-
-		t.ok( total_insert_successful == number, 'Inserted ' + number + ' successfully' );
+		var time = new Date().getTime() - start;
+		var total_per_mili = number/time;
+		
+		t.ok( total_insert_successful == number, 'Inserted ' + number + ' successfully (' + total_per_mili + '/ms)' );
 
 		var total_retrieved_successful = 0, total_retrieved_failed = 0;	       
 		var on_value_retrieved = function on_value_retrieved( err, value ) {
@@ -76,13 +79,18 @@ test( 'Insert keys with medium sized value', function( t ) {
 		    else {
 			total_retrieved_successful++;
 		    }
-		    
+
+		    var time = new Date().getTime() - start;
+		    var total_per_mili = number/time;
+
 		    if ( total_retrieved_successful + total_retrieved_failed == number ) {
-			t.ok( total_retrieved_successful == number, 'Retrieved ' + number + ' successfully' );
+			
+			t.ok( total_retrieved_successful == number, 'Retrieved ' + number + ' successfully (' + total_per_mili + '/ms)' );
 		    }
 	       
 		}; //on_value_retrieved
 
+		start = new Date().getTime();
 		for ( var i = 0; i < number; i++ ) {
 		    var key;
 		    if ( i % 2 == 0 ) {
@@ -100,6 +108,7 @@ test( 'Insert keys with medium sized value', function( t ) {
 
 	};
 
+        start = new Date().getTime();
 	for ( var i = 0; i < number; i++ ) {
 	    var key;
 	    if ( i % 2 == 0 ) {
