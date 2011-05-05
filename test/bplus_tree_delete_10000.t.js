@@ -57,21 +57,6 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 		//nested test, bleh, but necessary for now
 		var total_delete_successful = 0, total_delete_failed = 0;		
 
-		var on_deleted = function on_value_retrieved( err, value ) {
-
-		    if ( err )  { 
-			total_delete_failed++ 
-		    }
-		    else {
-			total_delete_successful++;
-		    }
-		    
-		    if ( total_delete_successful + total_delete_failed == number ) {
-	
-			t.ok( total_delete_successful == number, 'Deleted ' + number + ' successfully' );
-			
-			if ( total_delete_successful == number ) {
-			    
 			    var total_retrieved_failed = 0, total_retrieved_successful = 0;
 			    var on_retrieved = function on_retrieved( err, value ) {
 
