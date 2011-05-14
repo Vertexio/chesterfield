@@ -93,9 +93,7 @@ test('Insert ' + number + ' keys with small values', function(t) {
                         }
 
                     };
-                var value_transform = function(value) {
-                        return value + 'new';
-                    };
+               
                 for (var i = 0; i < number; i++) {
                     var key;
                     if (i % 2 == 0) {
@@ -104,8 +102,8 @@ test('Insert ' + number + ' keys with small values', function(t) {
                     else {
                         key = foo + i;
                     }
-
-                    bplus_tree.update(key, value_transform, on_updated);
+                    var value = key + 'new';
+                    bplus_tree.update(key, value, on_updated);
                 }
 
             }

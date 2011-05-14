@@ -19,6 +19,18 @@ var on_inserted_generator = function on_inserted_generator( t, should_be_err, te
     return on_inserted;
 };
 
+var value_function_generator = function value_function_generator(i, value) {
+        var value_function = function value_function(context, continuation) {
+                if (i % 2 == 0) {
+                    continuation('faz bad');
+                }
+                else {
+                    continuation(null, value); //foo good   
+                }
+            };
+        return value_function;
+};
+
 var setup = function setup() {
 
     var file = 'data/bplustree.data';
@@ -70,7 +82,7 @@ test('Insert ' + number + ' keys with small values', function(t) {
 
                         if (total_updated_failed + total_updated_successfully == number) {
 
-                            t.ok(total_updated_successfully == number, 'Updated ' + number + ' keys successfully');
+                            t.ok(total_updated_successfully == number / 2, 'Updated ' + number / 2 + ' keys successfully');
 
                             //nested test, bleh, but necessary for now
                             var total_retrieved_successful = 0,
@@ -79,7 +91,7 @@ test('Insert ' + number + ' keys with small values', function(t) {
                             var emitted = 0;
 
                             var on_walk_complete = function on_walk_complete(err, value) {
-                                    t.ok(emitted == number, 'Walk emitted updated values ' + number + ' times');
+                                    t.ok(emitted == number / 2, 'Walk emitted updated values ' + number / 2 + ' times');
 
                                 }; //on_walk_complete
                             var emit = function(key, value) {
@@ -93,7 +105,6 @@ test('Insert ' + number + ' keys with small values', function(t) {
                         }
 
                     };
-               
                 for (var i = 0; i < number; i++) {
                     var key;
                     if (i % 2 == 0) {
@@ -103,7 +114,8 @@ test('Insert ' + number + ' keys with small values', function(t) {
                         key = foo + i;
                     }
                     var value = key + 'new';
-                    bplus_tree.update(key, value, on_updated);
+                    var value_function = value_function_generator( i, value );
+                    bplus_tree.update(key, value_function, on_updated);
                 }
 
             }
