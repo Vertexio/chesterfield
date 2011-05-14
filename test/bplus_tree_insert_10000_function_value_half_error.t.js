@@ -3,10 +3,10 @@ var BPlusTree = require('../lib/bplus_tree').BPlusTree;
 var path = require('path');
 var fs = require('fs');
 
-
 //eventually we'll uncomment this once node-tap becomes more mature
 //var test = require("tap").test
 
+//fake node-tap
 var test = require('./fake-node-tap').test;
 
 var on_inserted_generator = function on_inserted_generator( t, should_be_err, test_string, setup ) {
@@ -28,9 +28,22 @@ var setup = function setup() {
 
 };
 
+var value_function_generator = function value_function_generator(i, value) {
+        var value_function = function value_function(context, continuation) {
+                if (i % 2 == 0) {
+                    continuation('faz bad');
+                }
+                else {
+                    continuation(null, value); //foo good   
+                }
+            };
+        return value_function;
+    };
+
+
 var number = 10000;
 
-test( 'Insert ' + number + ' keys with small values', function ( t ) {
+test( 'Insert ' + number + ' keys', function ( t ) {
 	
 	setup();
 
@@ -52,44 +65,43 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 
 	    if ( total_successful + total_failed == number) {
 		
-		t.ok( total_successful == number, 'Inserted ' + number + ' keys successfully' );
+		t.ok( total_successful == number / 2, 'Inserted ' + number / 2 + ' keys successfully' );
 	
 		//nested test, bleh, but necessary for now
-		var total_delete_successful = 0, total_delete_failed = 0;		
+		//check that dupes can't be inserted
+		var total_retrieved_successful = 0, total_retrieved_failed = 0;		
 
-		var on_deleted = function on_value_retrieved( err, value ) {
+		var on_value_retrieved = function on_value_retrieved( err, value ) {
 
 		    if ( err )  { 
-			total_delete_failed++ 
+			total_retrieved_failed++ 
 		    }
 		    else {
-			total_delete_successful++;
+			total_retrieved_successful++;
 		    }
 		    
-		    if ( total_delete_successful + total_delete_failed == number ) {
-	
-			t.ok( total_delete_successful == number, 'Deleted ' + number + ' successfully' );
+		    if ( total_retrieved_successful + total_retrieved_failed == number ) {
+			t.ok( total_retrieved_successful == number / 2 , 'Retrieved ' + number / 2+ ' successfully' );
 			
-			if ( total_delete_successful == number ) {
-			    
-			    var total_retrieved_failed = 0, total_retrieved_successful = 0;
-			    var on_retrieved = function on_retrieved( err, value ) {
+			if ( total_retrieved_successful == number / 2 ) {
 
-				if ( err ) {
-				    total_retrieved_failed++;
+			    //one more nested test
+			    var total_dupe_insert_failed = 0, total_dupe_insert_successful = 0;
+			    var on_dupe_inserted = function on_dupe_inserted( err, sequence_number ) {
+
+				if ( err )  { 
+				    total_dupe_insert_failed++ 
 				}
 				else {
-
-				    total_retrieved_successful++;
+				    total_dupe_insert_successful++;
 				}
 				
-				if ( total_retrieved_failed + total_retrieved_successful == number) {
-				    
-				    t.ok( total_retrieved_failed == number, 'Can\'t retrieve anything, all seem deleted' );
+				if ( total_dupe_insert_successful + total_dupe_insert_failed == number ) {
+				    t.ok( total_dupe_insert_failed == number / 2, number/2 + ' dupe inserts should have not succeeded' );
+
 				}
 
 			    };
-
 			    
 			    for ( var i = 0; i < number; i++ ) {
 				var key;
@@ -99,8 +111,9 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 				else {
 				    key = foo + i;
 				}
-
-				bplus_tree.retrieve( key, on_retrieved );
+                
+                bplus_tree.insert( key, value, on_dupe_inserted );
+			
 			    }
 
 			}
@@ -109,7 +122,7 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 
 		    }
 		    
-		}; //on_deleted
+		}; //on_value_retrieved
 		
 		for ( var i = 0; i < number; i++ ) {
 		    var key;
@@ -120,7 +133,7 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 			key = foo + i;
 		    }
 	
-		    bplus_tree.delete( key, on_deleted );
+		    bplus_tree.retrieve( key, on_value_retrieved );
 		    
 		}
 		
@@ -136,8 +149,9 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 	    else {
 		key = foo + i;
 	    }
-	
-	    bplus_tree.insert( key, key, on_inserted );
+    
+        var value_function = value_function_generator( i, key );
+	    bplus_tree.insert( key, value_function, on_inserted );
 	
 	}
 	

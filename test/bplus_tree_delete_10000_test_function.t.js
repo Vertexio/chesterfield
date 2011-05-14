@@ -28,6 +28,19 @@ var setup = function setup() {
 
 };
 
+var test_function_generator = function test_function_generator( i ) {
+
+    var test = function test( context, continuation ) {
+        if ( i % 2 == 0 ) {
+    		continuation( null );
+		}
+		else {
+			continuation( 'foo good' );
+		}
+    };
+    return test;
+};
+
 var number = 10000;
 
 test( 'Insert ' + number + ' keys with small values', function ( t ) {
@@ -68,9 +81,9 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 		    
 		    if ( total_delete_successful + total_delete_failed == number ) {
 	
-			t.ok( total_delete_successful == number, 'Deleted ' + number + ' successfully' );
+			t.ok( total_delete_successful == number / 2, 'Deleted ' + number / 2 + ' successfully' );
 			
-			if ( total_delete_successful == number ) {
+			if ( total_delete_successful + total_delete_failed == number ) {
 			    
 			    var total_retrieved_failed = 0, total_retrieved_successful = 0;
 			    var on_retrieved = function on_retrieved( err, value ) {
@@ -85,7 +98,7 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 				
 				if ( total_retrieved_failed + total_retrieved_successful == number) {
 				    
-				    t.ok( total_retrieved_failed == number, 'Can\'t retrieve anything, all seem deleted' );
+				    t.ok( total_retrieved_failed == number / 2, 'Can only retrieve half' );
 				}
 
 			    };
@@ -119,8 +132,9 @@ test( 'Insert ' + number + ' keys with small values', function ( t ) {
 		    else {
 			key = foo + i;
 		    }
-	
-		    bplus_tree.delete( key, on_deleted );
+            
+            var test_function = test_function_generator( i );	
+		    bplus_tree.delete( key, on_deleted, test_function );
 		    
 		}
 		
