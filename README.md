@@ -5,5 +5,5 @@ Chesterfield: originally British and internationally used (as in classic furnish
 
 Getting Started
 
-I'll fill this in more later, but one thing that's not obvious is that you need to use my version underscore.js. I'ved patched it and submitted a pull request but so far am getting no love.
+I'll fill this in more later, but one thing that's not obvious is that you need to use [ my version ](https://github.com/gflarity/underscore) of underscore.js. I'ved patched it and submitted a pull request but so far am getting no love.
 
